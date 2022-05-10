@@ -1,0 +1,33 @@
+version: '3.7'
+
+services:
+  go_api_app:
+    image: golang:1.18.1-alpine
+    container_name: go_api_app
+    volumes:
+      - ../project:/var/app
+    working_dir: /var/app
+#    build:
+#      context: .
+#      dockerfile: docker/deploy/Dockerfile
+#    restart: unless-stopped
+    depends_on:
+      - go_api_mysql
+    ports:
+      - "${APP_PORT_HOST}:${APP_PORT}"
+    env_file:
+      - ../project/.env
+
+  go_api_mysql:
+    image: mysql:5.7
+    container_name: go_api_mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: ${DATABASE_PASSWORD}
+      MYSQL_DATABASE: ${DATABASE_NAME}
+    ports:
+      - "${DATABASE_PORT_HOST}:${DATABASE_PORT}"
+    command: ['mysqld', '--character-set-server=utf8mb4', '--collation-server=utf8mb4_unicode_ci']
+    volumes:
+      - "../project/sql/dump.sql:/docker-entrypoint-initdb.d/dump.sql"
+
